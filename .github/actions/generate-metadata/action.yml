@@ -1,0 +1,108 @@
+inputs:
+  hugo-version:
+    required: true
+    type: string
+  site-base-tld:
+    description: "tld of site e.g.: foo.com"
+    required: true
+    type: string
+  site-http-prefix:
+    description: "http prefix desired"
+    required: false
+    type: string
+    default: 'https://'
+  #### env name defaults ####
+  dev-name:
+    description: "name of dev environment"
+    required: true
+    type: string
+    default: 'dev'
+  stg-name:
+    description: "name of stg environment"
+    required: true
+    type: string
+    default: 'stg'
+  prod-name:
+    description: "name of prod environment"
+    required: true
+    type: string
+    default: 'prod'
+outputs:
+  artifact-id:
+    description: "artifact id for build"
+    value: ${{ steps.generate-artifact-id.outputs.artifact-id }}
+  composite-domain:
+    description: "domain site will be built for"
+    value: ${{ steps.build-domain-id.outputs.tld-id}}
+  env-target:
+    description: "environment targeted for build/deploy"
+    value: ${{ steps.generate-env-id.outputs.env-id }}
+  hugo-version:
+    description: "hugo version chosen"
+    value: ${{ inputs.hugo-version }}
+
+runs:
+  using: composite
+  steps:
+    - name: determine target environment via github event-type/labels
+      shell: bash
+      id: generate-env-id
+      run: |
+        EVENT=${{ github.event_name }}
+        RLS_PRTITLE=${{ contains(github.event.pull_request.title, 'chore(main): release') }}
+        if [ $EVENT == 'pull_request' ]; then
+          if [ $RLS_PRTITLE == 'true' ]; then
+            echo "setting target as: ${{ inputs.stg-name }}"
+            echo "env-id=${{ inputs.stg-name }}" >> "$GITHUB_OUTPUT"
+          elif [ $RLS_PRTITLE == 'false' ]; then
+            echo "setting target as: ${{ inputs.dev-name }}"
+            echo "env-id=${{ inputs.dev-name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "FATAL: didn't get a true/false value back from pull_request label check!"
+            exit 1
+          fi
+        elif [ $EVENT == 'release' ]; then
+          echo "setting target as: ${{ inputs.prod-name }}"
+          echo "env-id=${{ inputs.prod-name }}" >> "$GITHUB_OUTPUT"
+        fi
+    - name: obtain shortened commit sha for PR-sync generated event
+      shell: bash
+      id: shortened-sha-id
+      run: |
+        SHA_ID=$(echo ${{ github.event.after }} | head -c 10)
+        echo "sha-id=$SHA_ID" >> $GITHUB_OUTPUT
+    # regex to ensure this is a valid release semver?
+    - name: obtain tag value if this is a full Release
+      shell: bash
+      if: ${{ github.event_name == 'release' }}
+      id: tag-id
+      run: |
+        echo "release tag obtained: ${{ github.ref_name }}"
+        echo "tag-id=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+    # dev-15hasd700d-branch-hugo_v0.112.1 / prod-v1.1.2-tag-hugo_v0.112.1
+    - name: generate composite id for artifact reference
+      shell: bash
+      id: generate-artifact-id
+      run: |
+        EVENT=${{ github.event_name }}
+        if [ $EVENT != 'release' ]; then
+          echo "artifact-id=${{ steps.generate-env-id.outputs.env-id }}-${{ steps.shortened-sha-id.outputs.sha-id }}-${{ github.ref_type }}-hugo_v${{ inputs.hugo-version }}" >> $GITHUB_OUTPUT
+        elif [ $EVENT == 'release' ]; then
+          echo "artifact-id=${{ steps.generate-env-id.outputs.env-id }}-${{ steps.tag-id.outputs.tag-id }}-${{ github.ref_type }}-hugo_v${{ inputs.hugo-version }}" >> $GITHUB_OUTPUT
+        else
+          echo "FATAL: unable to generate artifact ID for metadata, exiting!"
+          exit 1
+        fi
+    - name: generate composite domain name for hugo build
+      shell: bash
+      id: build-domain-id
+      run: |
+        EVENT=${{ github.event_name }}
+        if [ $EVENT != 'release' ]; then
+          echo "tld-id=${{ inputs.site-http-prefix }}${{ steps.generate-env-id.outputs.env-id }}.${{ inputs.site-base-tld }}" >> $GITHUB_OUTPUT
+        elif [ $EVENT == 'release' ]; then
+          echo "tld-id=${{ inputs.site-http-prefix }}${{ inputs.site-base-tld }}" >> $GITHUB_OUTPUT
+        else
+          echo "FATAL: unable to generate composite TLD for metadata, exiting!"
+          exit 1
+        fi

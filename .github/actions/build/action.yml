@@ -1,0 +1,48 @@
+
+inputs:
+  hugo-version:
+    required: true
+    type: string
+  build-id:
+    required: true
+    type: string
+  build-domain:
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: install hugo cli from cache (if available)
+      id: hugo-cli-cache
+      uses: actions/cache@v3
+      with:
+        key: hugo-${{ inputs.hugo-version }}
+        path: ${{ runner.temp }}/hugo.deb
+    - name: download hugo cli from remote
+      shell: bash
+      if: steps.hugo-cli-cache.outputs.cache-hit != 'true'
+      run: |
+        wget -O ${{ runner.temp }}/hugo.deb \
+        https://github.com/gohugoio/hugo/releases/download/v${{ inputs.hugo-version }}/hugo_extended_${{ inputs.hugo-version }}_linux-amd64.deb
+    - name: install hugo cli from .deb
+      shell: bash
+      run: |
+        sudo dpkg -i ${{ runner.temp }}/hugo.deb
+    - name: build static content with hugo
+      shell: bash
+      run: |
+        hugo \
+          --gc \
+          --minify \
+          --baseURL "${{ inputs.build-domain }}/"
+    - name: create tarball before storing as artifact
+      shell: bash
+      run: |
+        tar -cvf build.tar ./public/
+    - name: store built content as gh artifact ${{ inputs.build-id }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.build-id }}
+        path: build.tar
+        retention-days: 5

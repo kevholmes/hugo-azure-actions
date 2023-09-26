@@ -1,0 +1,67 @@
+inputs:
+  build-id:
+    description: "composite parameter describing a built hugo website stored in gh artifacts"
+    required: true
+    type: string
+  az-storage-acct:
+    description: "azure storage account id"
+    required: true
+    type: string
+  az-cdn-profile-name:
+    description: "azure cdn profile name"
+    required: true
+    type: string
+  az-cdn-endpoint:
+    description: "azure cdn endpoint name"
+    required: true
+    type: string
+  az-resource-group:
+    description: "azure resource group to deploy into"
+    required: true
+    type: string
+  # azure authentication inputs
+  az-client-id:
+    description: "azure service principal id"
+    required: true
+    type: string
+  az-client-secret:
+    description: "azure service principal password"
+    required: true
+    type: string
+  az-subscription-id:
+    description: "azure subscription id"
+    required: true
+    type: string
+  az-tenant-id:
+    description: "azure tenant id"
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: starting ${{ inputs.build-id }} deployment
+      shell: bash
+      run: |
+        echo "Deploying artifact ${{ inputs.build-id }}"
+    - uses: actions/download-artifact@v3
+      id: download-artifact
+      with:
+        name: ${{ inputs.build-id }}
+    - name: untar build artifact beore uploading
+      shell: bash
+      run: |
+        tar -xf build.tar
+    - uses: azure/login@v1
+      with:
+        creds: '{"clientId":"${{ inputs.az-client-id }}","clientSecret":"${{ inputs.az-client-secret }}","subscriptionId":"${{ inputs.az-subscription-id }}","tenantId":"${{ inputs.az-tenant-id }}"}'
+    - name: Upload to blob storage
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az storage blob upload-batch --overwrite --account-name ${{ inputs.az-storage-acct }} --auth-mode login -d '$web' -s ./public
+    - name: Purge CDN endpoint
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az cdn endpoint purge --content-paths  "/*" --profile-name "${{ inputs.az-cdn-profile-name }}" --name "${{ inputs.az-cdn-endpoint }}" --resource-group "${{ inputs.az-resource-group }}"
