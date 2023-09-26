@@ -8,8 +8,13 @@ Composite GitHub Actions for Hugo projects deploying to Azure
 
 ## Example workflow invoking these Acitons
 
-I am utilizing Release-Please Action from Google to handle semantic versioning and cutting
-releses with PRs.
+I am utilizing [release-please-action](https://github.com/google-github-actions/release-please-action)
+from Google to handle semantic versioning and cutting
+releases via PRs in repos where these hugo/azure pipelines are used. It's also used within this repo `hugo-azure-actions`
+to generate Releases that follow the traditional GitHub Actions semver format where you can specify
+@major, @major.minor or @major.minor.patch when invoking each of them.
+See available [releases](https://github.com/kevholmes/hugo-azure-actions/releases)
+in this repo to see what the latest major semver to reference is when invoking these Actions in your own repos.
 
 This is a relatively simple process that upon a PR being opened or having a `synchronize` event
 which could be an event like push to an open PR will cause our CD process to trigger.
@@ -54,7 +59,7 @@ jobs:
     steps:
       - name: generate build metadata
         id: build-metadata
-        uses: kevholmes/hugo-azure-actions/.github/actions/generate-metadata@main
+        uses: kevholmes/hugo-azure-actions/.github/actions/generate-metadata@v1
         with:
           hugo-version: 0.118.2
           site-base-tld: cloverstack.dev
@@ -70,7 +75,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: build hugo site
-        uses: kevholmes/hugo-azure-actions/.github/actions/build@main
+        uses: kevholmes/hugo-azure-actions/.github/actions/build@v1
         with:
           build-id: ${{ needs.gen-metadata.outputs.build-id }}
           build-domain: ${{ needs.gen-metadata.outputs.build-domain }}
@@ -83,7 +88,7 @@ jobs:
       url: ${{ needs.gen-metadata.outputs.build-domain }}
     steps:
       - name: deploy hugo site to azure
-        uses: kevholmes/hugo-azure-actions/.github/actions/deploy@main
+        uses: kevholmes/hugo-azure-actions/.github/actions/deploy@v1
         with:
           build-id: ${{ needs.gen-metadata.outputs.build-id }}
           az-client-id: ${{ vars.CLIENT_ID }}
