@@ -6,7 +6,7 @@ Composite GitHub Actions for Hugo projects deploying to Azure
 1. build
 1. deploy
 
-## Example workflow invoking these Acitons
+## Example workflow invoking these Actions
 
 I am utilizing [release-please-action](https://github.com/google-github-actions/release-please-action)
 from Google to handle semantic versioning and cutting
@@ -17,12 +17,12 @@ See available [releases](https://github.com/kevholmes/hugo-azure-actions/release
 
 These Actions workflows and their CI/CD process are based on a simple GitHub PR-Ops flow:
 
-1. PR opened, or additional commits to an opened PR will build and deploy the Hugo site to <dev.site-base-tld>
+1. PR opened, or additional commits to an opened PR will build and deploy the Hugo site to dev.site-base-tld
 1. A Release-Please generated PR is opened that contains one or more [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
-PRs (e.g.: feat, fix) will be built and deployed to <stg.site-base-tld> each time that release PR is opened or updated if
+PRs (e.g.: feat, fix) will be built and deployed to stg.site-base-tld each time that release PR is opened or updated if
 more feature/fix PRs are merged into the branch it's monitoring.
 1. A Release-Please generated PR is merged into mainline, triggering a Release/tag event in GitHub, which will
-trigger a build/deploy to <site-base-tld> - typically this would be your production environment.
+trigger a build/deploy to site-base-tld - typically, this would be your production environment.
 
 
 The two central values to tweak here if you want to follow the above process are:
@@ -30,8 +30,8 @@ The two central values to tweak here if you want to follow the above process are
 - `hugo-version`
 - `site-base-tld`
 
-If you'd like to utilize these workflows in a similar fashion, I've included a sample `cd.yml` workflow below
-to place within the GitHub repo hosting your Hugo site's code. This in conjunction with a sample `release-please.yml`
+If you'd like to utilize these workflows similarly, I've included a sample `cd.yml` workflow below
+to place within the GitHub repo hosting your Hugo site's code. This, in conjunction with a sample `release-please.yml`
 workflow in that same Hugo code repo will provide the Release Please PR/semantic versioning automation if you use
 Conventional Commits for PR titles.
 
@@ -133,3 +133,12 @@ jobs:
           release-type: go
           token: ${{ secrets.RELEASER_TOKEN }}
 ```
+
+## Azure Infrastructure
+
+This is leveraging Azure Storage's Static Web hosting feature. I also utilize HTTPS-only and the Classic Azure CDN
+with auto-TLS rotation for the development environments. Three environments (dev, stg, prod) in this setup cost me $2.40 to
+$5.00 (USD) a month, depending on CDN traffic load.
+
+If you'd like to see how this Azure infrastructure is set up, the Pulumi code describing it all is located at
+[kevholmes/elyclover.com-infra](https://github.com/kevholmes/elyclover.com-infra).
