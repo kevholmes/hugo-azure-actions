@@ -41,7 +41,7 @@ runs:
       run: |
         tar -cvf build.tar ./public/
     - name: store built content as gh artifact ${{ inputs.build-id }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.build-id }}
         path: build.tar
