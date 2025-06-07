@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/kevholmes/hugo-azure-actions/compare/v1.0.0...v1.0.1) (2025-06-07)
+
+
+### Bug Fixes
+
+* outdated artifact actions ([#10](https://github.com/kevholmes/hugo-azure-actions/issues/10)) ([2df63e7](https://github.com/kevholmes/hugo-azure-actions/commit/2df63e78dd28d0e536aa9e772b93a13dde6130ee))
+
 ## 1.0.0 (2023-09-26)
 
 
