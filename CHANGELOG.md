@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/kevholmes/hugo-azure-actions/compare/v1.1.0...v1.2.0) (2026-03-06)
+
+
+### Features
+
+* improve az cdn purge speed - no wait ([#16](https://github.com/kevholmes/hugo-azure-actions/issues/16)) ([e4ed66a](https://github.com/kevholmes/hugo-azure-actions/commit/e4ed66a838bc6094a2413d3b9228b69b3b91240d))
+
 ## [1.1.0](https://github.com/kevholmes/hugo-azure-actions/compare/v1.0.1...v1.1.0) (2026-03-06)
 
 
