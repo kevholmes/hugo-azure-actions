@@ -56,10 +56,19 @@ runs:
       with:
         creds: '{"clientId":"${{ inputs.az-client-id }}","clientSecret":"${{ inputs.az-client-secret }}","subscriptionId":"${{ inputs.az-subscription-id }}","tenantId":"${{ inputs.az-tenant-id }}"}'
     - name: Upload to blob storage
-      uses: azure/CLI@v1
-      with:
-        inlineScript: |
-          az storage blob upload-batch --overwrite --account-name ${{ inputs.az-storage-acct }} --auth-mode login -d '$web' -s ./public
+      shell: bash
+      env:
+        AZCOPY_SPA_APPLICATION_ID: ${{ inputs.az-client-id }}
+        AZCOPY_SPA_CLIENT_SECRET: ${{ inputs.az-client-secret }}
+        AZCOPY_TENANT_ID: ${{ inputs.az-tenant-id }}
+      run: |
+        azcopy login --service-principal \
+          --application-id "${{ inputs.az-client-id }}" \
+          --tenant-id "${{ inputs.az-tenant-id }}"
+        azcopy sync "./public/" \
+          "https://${{ inputs.az-storage-acct }}.blob.core.windows.net/\$web" \
+          --delete-destination=true \
+          --recursive=true
     - name: Purge CDN endpoint
       uses: azure/CLI@v1
       with:
