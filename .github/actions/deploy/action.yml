@@ -73,4 +73,4 @@ runs:
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          az cdn endpoint purge --content-paths  "/*" --profile-name "${{ inputs.az-cdn-profile-name }}" --name "${{ inputs.az-cdn-endpoint }}" --resource-group "${{ inputs.az-resource-group }}"
+          az cdn endpoint purge --no-wait --content-paths  "/*" --profile-name "${{ inputs.az-cdn-profile-name }}" --name "${{ inputs.az-cdn-endpoint }}" --resource-group "${{ inputs.az-resource-group }}"
