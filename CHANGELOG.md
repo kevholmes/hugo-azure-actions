@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/kevholmes/hugo-azure-actions/compare/v1.0.1...v1.1.0) (2026-03-06)
+
+
+### Features
+
+* use azcopy to improve deploy speed of blobs ([#14](https://github.com/kevholmes/hugo-azure-actions/issues/14)) ([8564f56](https://github.com/kevholmes/hugo-azure-actions/commit/8564f56af8b87325a52cd5a488a6f3be1bdc637c))
+
 ## [1.0.1](https://github.com/kevholmes/hugo-azure-actions/compare/v1.0.0...v1.0.1) (2025-06-07)
 
 
